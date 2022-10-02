@@ -142,7 +142,6 @@ const createSpace = (req, res) => {
         });
       });
     });
-    console.log(building);
   });
 };
 

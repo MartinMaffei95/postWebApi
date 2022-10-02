@@ -7,6 +7,9 @@ const Building = require('../models/building');
 const Booking = require('../models/booking');
 const { isValidObjectId, Types } = require('mongoose');
 
+// to do:
+//- when acept reservation need confirms that user is admin
+
 // get a specific building
 const getBooking = (req, res) => {
   const { id } = req.params;

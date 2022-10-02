@@ -6,15 +6,6 @@ const Booking = require('./booking');
 const spaceSchema = new Schema({
   name: {
     type: String,
-    validate: {
-      validator: function (name) {
-        return mongoose
-          .model('Space')
-          .findOne({ name: name })
-          .then((user) => !user);
-      },
-      message: 'TAKEN_NAME',
-    },
   },
   fromBuilding: {
     type: Schema.Types.ObjectId,
