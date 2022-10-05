@@ -153,7 +153,70 @@ const createABooking = (req, res) => {
   });
 };
 
+//########################################
+// ## GET ALL BOOKINGS - for spaceID #####
+//########################################
+const getAllBookings = (req, res) => {
+  const { spaceId } = req.query;
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+    let reservation = Booking.find({
+      space: spaceId,
+    })
+      .populate('space bookedBy building')
+      .exec((err, reservation) => {
+        if (!reservation) {
+          return res.status(500).json({
+            message: 'BOOKINGS_NOT_FOUND',
+            reservation,
+          });
+        }
+        return res.status(200).json({
+          message: 'BOOKINGS_FOUND',
+          bookings: reservation,
+        });
+      });
+  });
+};
+
+//########################################
+//##### GET MY BOOKINGS - for userId #####
+//########################################
+const getMyBookings = (req, res) => {
+  console.log('GET MY BOOKINGS');
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+    const myId = userData.user._id;
+
+    let bookings = Booking.find({
+      bookedBy: {
+        $in: [myId],
+      },
+    })
+      .populate('space bookedBy building')
+      .exec((err, booking) => {
+        console.log(booking);
+        return res.status(200).json({
+          message: 'BOOKINGS_FOUND',
+          booking,
+        });
+      });
+  });
+};
+
 module.exports = {
   createABooking,
   getBooking,
+  getMyBookings,
+  getAllBookings,
 };

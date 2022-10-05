@@ -2,6 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const app = express();
 const { Space } = require('./models/space');
+const cors = require('cors');
 
 // ROUTES
 const userRoutes = require('./routes/users');
@@ -19,6 +20,14 @@ require('./connection');
 //############################
 // ## SERVER CONFIG ##########
 //############################
+app.use(
+  cors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
 
 app.set('PORT', process.env.PORT || 4000);
 app.use(express.json());
@@ -32,10 +41,6 @@ app.use('/users', userRoutes);
 app.use('/buildings', buildingRoutes);
 app.use('/spaces', spaceRoutes);
 app.use('/bookings', bookingRoutes);
-
-// app.use('/users', userRoutes);
-
-const date = ' 1/9/2022';
 
 app.listen(app.get('PORT'), () => {
   console.log(`server listening on port ${app.get('PORT')}`);

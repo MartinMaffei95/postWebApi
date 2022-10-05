@@ -12,7 +12,7 @@ const spaceSchema = new Schema({
     required: true,
     ref: 'Building',
   },
-  bookings: [{ type: Schema.Types.ObjectId, default: [], name: 'Booking' }],
+  bookings: [{ type: Schema.Types.ObjectId, default: [], ref: 'Booking' }],
   timeSlotsFormat: { type: String, default: false, required: true }, // Mañana, tarde, noche | dia
   timeSlotsTaked: {},
   needConfirmation: { type: Boolean, default: false, required: true },
