@@ -246,20 +246,21 @@ const getBuilding = (req, res) => {
       });
     }
 
-    let building = await Building.findById(id);
-    if (!building) {
-      return res.status(501).json({
-        message: 'BUILDING_NOT_FOUND',
-        building,
-      });
-    }
+    let building = await Building.findById(id)
+      .populate('admin spaces tenants')
+      .exec((err, result) => {
+        if (err) {
+          return res.status(501).json({
+            message: 'BUILDING_NOT_FOUND',
+            building,
+          });
+        }
 
-    if (building) {
-      return res.status(200).json({
-        message: 'BUILDING_FOUND',
-        building,
+        return res.status(200).json({
+          message: 'BUILDING_FOUND',
+          building: result,
+        });
       });
-    }
   });
 };
 
