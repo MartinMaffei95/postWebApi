@@ -135,41 +135,6 @@ const createBuilding = (req, res) => {
 };
 
 //################################
-// ## ADDING TENANTS    ##########
-//################################
-const addTenant = (req, res) => {
-  const { id } = req.params;
-
-  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
-    if (err) {
-      return res.status(501).json({
-        message: 'TOKEN_ERROR',
-        error: err,
-      });
-    }
-    let building = await Building.findById(id);
-    if (building?.tenants?.includes(userData?.user?._id)) {
-      return res.status(501).json({
-        message: 'USER_ALREDY_EXISTS',
-      });
-    }
-
-    building = await Building.findByIdAndUpdate(
-      id,
-      {
-        $push: { tenants: userData?.user?._id },
-      },
-      { returnOriginal: false }
-    );
-    if (building) {
-      return res.status(501).json({
-        building,
-      });
-    }
-  });
-};
-
-//################################
 // ## GET ALL BUILDINGS ##########
 //################################
 const getAllBuildings = (req, res) => {
@@ -223,7 +188,6 @@ const getMyBuildings = (req, res) => {
         populate: { path: 'bookings' },
       })
       .exec((err, building) => {
-        console.log(building);
         return res.status(200).json({
           message: 'BUILDINGS_FOUND',
           building,
@@ -266,7 +230,6 @@ const getBuilding = (req, res) => {
 
 module.exports = {
   createBuilding,
-  addTenant,
   getBuilding,
   getAllBuildings,
   getMyBuildings,

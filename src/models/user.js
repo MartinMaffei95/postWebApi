@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const { Build } = require('./building');
+const Building = require('./building');
 
 const userSchema = new Schema({
   username: {
@@ -17,7 +17,10 @@ const userSchema = new Schema({
   },
   name: {},
   password: { type: String, required: [true, 'PASSWORD is required'] },
-  buildings: { type: [Build], default: undefined },
+  buildings: [{ type: Schema.Types.ObjectId, default: [], ref: 'Building' }],
+  tenantRequests: [
+    { type: Schema.Types.ObjectId, default: [], ref: 'Building' }, //recibe building Id for acept later
+  ],
   createdAt: {
     type: Number,
     default: Date.now,

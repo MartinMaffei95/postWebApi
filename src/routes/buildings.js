@@ -5,7 +5,6 @@ const { verifyID } = require('../middlewares/verifyID');
 
 const {
   createBuilding,
-  addTenant,
   getBuilding,
   getAllBuildings,
   getMyBuildings,
@@ -13,9 +12,6 @@ const {
 
 //create a Building
 router.post('/', verifyToken, createBuilding);
-
-//add tenant on building
-router.post('/:id', verifyToken, verifyID, addTenant);
 
 //getting all buildings
 router.get('/all', verifyToken, getAllBuildings);

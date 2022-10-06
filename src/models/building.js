@@ -30,16 +30,20 @@ const buildingSchema = new Schema({
     },
   }, // uuid
   spaces: [{ type: Schema.Types.ObjectId, default: undefined, ref: 'Space' }],
-  admin: {
-    type: Array,
-    default: undefined,
-    ref: 'User',
-  },
-  tenants: {
-    type: Array,
-    default: undefined,
-    ref: 'User',
-  },
+  admin: [
+    {
+      type: Schema.Types.ObjectId,
+      default: [],
+      ref: 'User',
+    },
+  ],
+  tenants: [
+    {
+      type: Schema.Types.ObjectId,
+      default: [],
+      ref: 'User',
+    },
+  ],
   createdAt: {
     type: Number,
     default: Date.now,

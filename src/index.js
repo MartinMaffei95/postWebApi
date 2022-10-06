@@ -1,6 +1,8 @@
 const express = require('express');
+const logger = require('morgan');
 require('dotenv').config();
 const app = express();
+app.use(logger('dev'));
 const { Space } = require('./models/space');
 const cors = require('cors');
 
@@ -10,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const buildingRoutes = require('./routes/buildings');
 const spaceRoutes = require('./routes/spaces');
 const bookingRoutes = require('./routes/bookings');
+const searchRoutes = require('./routes/search');
 
 //############################
 // ## CONNECTING DB ##########
@@ -41,6 +44,7 @@ app.use('/users', userRoutes);
 app.use('/buildings', buildingRoutes);
 app.use('/spaces', spaceRoutes);
 app.use('/bookings', bookingRoutes);
+app.use('/search', searchRoutes);
 
 app.listen(app.get('PORT'), () => {
   console.log(`server listening on port ${app.get('PORT')}`);
