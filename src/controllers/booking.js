@@ -127,7 +127,7 @@ const createABooking = (req, res) => {
           space,
           bookedBy: userData.user._id,
         });
-
+        console.log(userData);
         // -- SAVING RESERVATION --
         reservation.save(async (err, result) => {
           if (err) {
@@ -195,14 +195,10 @@ const getMyBookings = (req, res) => {
         error: err,
       });
     }
-    const myId = userData.user._id;
+    const myId = Types.ObjectId(userData.user._id);
 
-    let bookings = Booking.find({
-      bookedBy: {
-        $in: [myId],
-      },
-    })
-      .populate('space bookedBy building')
+    let bookings = await Booking.find({ bookedBy: myId })
+      .populate([{ path: 'building' }, { path: 'space' }, { path: 'bookedBy' }])
       .exec((err, booking) => {
         return res.status(200).json({
           message: 'BOOKINGS_FOUND',

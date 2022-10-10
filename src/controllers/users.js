@@ -3,6 +3,7 @@ const SECRET_KEY = process.env.SECRET_KEY; // private key for jsonWebToken
 const Space = require('../models/space');
 const Building = require('../models/building');
 const User = require('../models/user');
+const Booking = require('../models/booking');
 const { isValidObjectId } = require('mongoose');
 
 // Get a user
@@ -108,6 +109,76 @@ const addTenantRequest = (req, res) => {
   });
 };
 
+// Cancel a request
+const cancelTenantRequest = (req, res) => {
+  const { id } = req.params; // userId
+  const { buildingId } = req.body;
+
+  if (!buildingId || !isValidObjectId(buildingId)) {
+    return res.status(501).json({
+      message: 'BUILDING_ID_IS_INVALID',
+    });
+  }
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    let user = await User.findById(id);
+    if (!user) {
+      return res.status(501).json({
+        message: 'USER_NOT_FOUND',
+      });
+    }
+    // if (user.buildings.includes(buildingId)) {
+    //   return res.status(501).json({
+    //     message: 'USER_IS_ALREDY_IN_THIS_BUILDING',
+    //   });
+    // }
+    if (!user.tenantRequests.includes(buildingId)) {
+      return res.status(501).json({
+        message: 'INVITATION_IS_NOT_SENDED',
+      });
+    }
+    let building = await Building.findById(buildingId);
+    if (!building) {
+      return res.status(501).json({
+        message: 'BUILDING_NOT_EXIST',
+      });
+    }
+
+    //Now: push the builiding id on 'tenantRequests' array.
+    user.update(
+      {
+        $pull: {
+          tenantRequests: buildingId,
+        },
+      },
+      async (err, userUpdated) => {
+        if (err) {
+          return res.status(501).json({
+            message: 'SERVER_ARROR_ON_UPDATE',
+            error: err,
+          });
+        }
+        // pushing id of user in buildings requests
+        await building.update({
+          $pull: {
+            requestsSended: id,
+          },
+        });
+        return res.status(200).json({
+          message: 'REQUEST_SUCCESS',
+        });
+      }
+    );
+  });
+};
+
 // Acepting a request
 const aceptTenantRequest = (req, res) => {
   const { id } = req.params; // buildingId
@@ -183,7 +254,8 @@ const aceptTenantRequest = (req, res) => {
   });
 };
 
-const cancelTenantRequest = (req, res) => {
+// remove tenant from building
+const removeTenant = (req, res) => {
   const { id } = req.params; // userId
   const { buildingId } = req.body;
 
@@ -200,6 +272,13 @@ const cancelTenantRequest = (req, res) => {
         error: err,
       });
     }
+    let building = await Building.findById(buildingId);
+
+    if (!building.admin.includes(userData.user._id)) {
+      return res.status(501).json({
+        message: 'USER_NOT_HAVE_PERMISSIONS',
+      });
+    }
 
     let user = await User.findById(id);
     if (!user) {
@@ -207,48 +286,69 @@ const cancelTenantRequest = (req, res) => {
         message: 'USER_NOT_FOUND',
       });
     }
-    // if (user.buildings.includes(buildingId)) {
-    //   return res.status(501).json({
-    //     message: 'USER_IS_ALREDY_IN_THIS_BUILDING',
-    //   });
-    // }
-    if (!user.tenantRequests.includes(buildingId)) {
+    if (!user.buildings.includes(buildingId)) {
       return res.status(501).json({
-        message: 'INVITATION_IS_NOT_SENDED',
+        message: 'USER_IS_NOT_IN_BUILDING',
       });
     }
-    let building = await Building.findById(buildingId);
+
     if (!building) {
       return res.status(501).json({
         message: 'BUILDING_NOT_EXIST',
       });
     }
 
-    //Now: push the builiding id on 'tenantRequests' array.
-    user.update(
-      {
+    if (building.admin.includes(id)) {
+      await building.update({
         $pull: {
-          tenantRequests: buildingId,
+          tenants: id,
+          admin: id,
         },
-      },
-      async (err, userUpdated) => {
-        if (err) {
-          return res.status(501).json({
-            message: 'SERVER_ARROR_ON_UPDATE',
-            error: err,
-          });
-        }
-        // pushing id of user in buildings requests
-        await building.update({
-          $pull: {
-            requestsSended: id,
-          },
-        });
-        return res.status(200).json({
-          message: 'REQUEST_SUCCESS',
-        });
+      });
+      await user.update({
+        $pull: {
+          buildings: buildingId,
+        },
+      });
+      let bookings = await Booking.find({});
+      building = await Building.findById(buildingId);
+      // For elimination of tenants
+      if (building.tenants.length <= 0) {
+        await Space.deleteMany({ fromBuilding: buildingId });
+        await Booking.deleteMany({ building: buildingId });
+        await Building.deleteOne({ _id: buildingId });
       }
-    );
+      if (bookings) {
+        await Booking.deleteMany({ bookedBy: id, building: buildingId });
+      }
+      return res.status(200).json({
+        message: 'REMOVED_USER_FROM_BUILDING',
+      });
+    }
+
+    await building.update({
+      $pull: {
+        tenants: id,
+      },
+    });
+    await user.update({
+      $pull: {
+        buildings: buildingId,
+      },
+    });
+    let bookings = await Booking.find({});
+    // For elimination of tenants
+    if (building.tenants.length <= 0) {
+      await Space.deleteMany({ fromBuilding: buildingId });
+      await Booking.deleteMany({ building: buildingId });
+      await Building.deleteOne({ _id: buildingId });
+    }
+    if (bookings) {
+      await Booking.deleteMany({ bookedBy: id, building: buildingId });
+    }
+    return res.status(200).json({
+      message: 'REMOVED_USER_FROM_BUILDING',
+    });
   });
 };
 
@@ -257,4 +357,5 @@ module.exports = {
   addTenantRequest,
   aceptTenantRequest,
   cancelTenantRequest,
+  removeTenant,
 };

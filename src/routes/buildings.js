@@ -18,8 +18,9 @@ router.post('/', verifyToken, createBuilding);
 //getting all buildings
 router.get('/all', verifyToken, getAllBuildings);
 
+//Admins requests
 router.post('/admin/:id', verifyToken, verifyID, giveAdmin);
-
+//Admins requests
 router.delete('/admin/:id', verifyToken, verifyID, removeAdmin);
 
 //getting my buildings

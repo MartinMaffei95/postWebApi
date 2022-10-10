@@ -7,15 +7,11 @@ const { createSpace } = require('./space');
 const { Types, isValidObjectId } = require('mongoose');
 const User = require('../models/user');
 
-// For elimination of tenants
-// if (building.tenants.length <= 0) {
-//   await Space.deleteMany({ fromBuilding: id });
-//   await Booking.deleteMany({ building: id });
-// }
+//######################################
+// ##  BUILDIGN REQUESTS ###############
+//######################################
 
-//################################
 // ## CREATE BUILDINGS  ##########
-//################################
 const createBuilding = (req, res) => {
   const { name, buildingIdentifier } = req.body;
 
@@ -138,9 +134,7 @@ const createBuilding = (req, res) => {
   });
 };
 
-//################################
 // ## GET ALL BUILDINGS ##########
-//################################
 const getAllBuildings = (req, res) => {
   const { id } = req.params;
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
@@ -169,9 +163,7 @@ const getAllBuildings = (req, res) => {
   });
 };
 
-//################################
 // ## GET MY BUILDINGS  ##########
-//################################
 const getMyBuildings = (req, res) => {
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
     if (err) {
@@ -200,9 +192,7 @@ const getMyBuildings = (req, res) => {
   });
 };
 
-//################################
-// ## GET ONE BUILDING ###########
-//################################
+// ## GET ONE BUILDING  ##########
 const getBuilding = (req, res) => {
   const { id } = req.params;
 
