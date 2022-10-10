@@ -8,6 +8,8 @@ const {
   getBuilding,
   getAllBuildings,
   getMyBuildings,
+  giveAdmin,
+  removeAdmin,
 } = require('../controllers/buildings');
 
 //create a Building
@@ -15,6 +17,10 @@ router.post('/', verifyToken, createBuilding);
 
 //getting all buildings
 router.get('/all', verifyToken, getAllBuildings);
+
+router.post('/admin/:id', verifyToken, verifyID, giveAdmin);
+
+router.delete('/admin/:id', verifyToken, verifyID, removeAdmin);
 
 //getting my buildings
 router.get('/', verifyToken, getMyBuildings);

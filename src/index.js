@@ -8,6 +8,8 @@ const cors = require('cors');
 
 const moment = require('moment');
 
+const Building = require('./models/building');
+const User = require('./models/user');
 // ROUTES
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
@@ -17,6 +19,7 @@ const bookingRoutes = require('./routes/bookings');
 const searchRoutes = require('./routes/search');
 const Space = require('./models/space');
 const { deleteExpiredBookings } = require('./middlewares/deleteExpiredBooking');
+const { Types } = require('mongoose');
 
 //############################
 // ## CONNECTING DB ##########
@@ -61,7 +64,7 @@ cron.schedule('* */6 * * *', function () {
   );
 });
 
-console.log(moment(1665198624069).add(30, 's'));
+// console.log(moment(1665198624069).add(30, 's'));
 app.listen(app.get('PORT'), () => {
   console.log(`server listening on port ${app.get('PORT')}`);
 });

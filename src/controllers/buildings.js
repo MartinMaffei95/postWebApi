@@ -2,9 +2,16 @@ const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.SECRET_KEY; // private key for jsonWebToken
 const Building = require('../models/building');
 const Space = require('../models/space');
+const Booking = require('../models/booking');
 const { createSpace } = require('./space');
-const { Types } = require('mongoose');
+const { Types, isValidObjectId } = require('mongoose');
 const User = require('../models/user');
+
+// For elimination of tenants
+// if (building.tenants.length <= 0) {
+//   await Space.deleteMany({ fromBuilding: id });
+//   await Booking.deleteMany({ building: id });
+// }
 
 //################################
 // ## CREATE BUILDINGS  ##########
@@ -100,13 +107,18 @@ const createBuilding = (req, res) => {
       });
 
       // saving multiple spaces
-      Space.insertMany(arrOfSpaces, function (err, result) {
+      Space.insertMany(arrOfSpaces, async function (err, result) {
         if (err) {
           return res.status(501).json({
             message: 'ERROR_SAVING_SPACE',
             error: err?.errors,
           });
         } else {
+          await User.findByIdAndUpdate(
+            userData.user._id,
+            { $push: { buildings: builidngId } },
+            { returnOriginal: false }
+          );
           building.save((err, result) => {
             if (err) {
               return res.status(501).json({
@@ -229,9 +241,123 @@ const getBuilding = (req, res) => {
   });
 };
 
+//######################################
+// ##  ADMIN REQUESTS ##################
+//######################################
+
+// transform a tenant to admin
+const giveAdmin = (req, res) => {
+  const { id } = req.params; //id from building
+  const { newAdmin } = req.body;
+
+  if (!newAdmin || !isValidObjectId(newAdmin)) {
+    return res.status(501).json({
+      message: 'ADMIN_ID_IS_INVALID',
+      data: newAdmin,
+    });
+  }
+
+  // verify the userId is on "tenants" Array from building.
+  // if is true then push the userId on admins array from building
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    const userId = userData.user._id;
+    let building = await Building.findById(id);
+
+    //verify the user who makes the req is an admin
+    if (!building.admin.includes(userId)) {
+      return res.status(501).json({
+        message: 'USER_NOT_HAVE_PERMISSIONS',
+      });
+    }
+
+    // verify the user is a tenant
+    if (!building?.tenants?.includes(newAdmin)) {
+      return res.status(501).json({
+        message: 'USER_IS_NOT_A_TENANT',
+        building,
+      });
+    }
+    //verify the user is not a admin yet
+    if (building?.admin?.includes(newAdmin)) {
+      return res.status(501).json({
+        message: 'USER_IS_ALREDY_ADMIN',
+      });
+    }
+    await building.update(
+      { $push: { admin: newAdmin } },
+      { returnOriginal: false }
+    );
+    return res.status(200).json({
+      message: 'USER_IS_ADMIN_NOW',
+      building,
+    });
+  });
+};
+
+// remove admin  from a user
+const removeAdmin = (req, res) => {
+  const { id } = req.params; //id from building
+  const { adminId } = req.body;
+
+  if (!adminId || !isValidObjectId(adminId)) {
+    return res.status(501).json({
+      message: 'ADMIN_ID_IS_INVALID',
+      data: adminId,
+    });
+  }
+
+  // verify the userId is on "tenants" Array from building.
+  // if is true then push the userId on admins array from building
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    const userId = userData.user._id;
+    let building = await Building.findById(id);
+
+    //verify the user who makes the req is an admin
+    if (!building.admin.includes(userId)) {
+      return res.status(501).json({
+        message: 'USER_NOT_HAVE_PERMISSIONS',
+      });
+    }
+
+    //verify the user is admin
+    if (!building.admin.includes(adminId)) {
+      return res.status(501).json({
+        message: 'USER_IS_NOT_A_ADMIN',
+        admins: building.admin,
+      });
+    }
+    await building.update(
+      { $pull: { admin: adminId } },
+      { returnOriginal: false }
+    );
+    building = await Building.findById(id);
+    //if there are no admins left we select one at random among the tenants. Exept the user who request
+    if (building.admin.length <= 0) {
+      let usersWithOutDeleted = building?.tenants?.filter(
+        (userFromBuilding) => !userFromBuilding._id.equals(userId)
+      );
+      let tenatsOnBuilding = usersWithOutDeleted.length;
+      let randomTenantIndex = Math.floor(Math.random() * tenatsOnBuilding);
+      let randomTenant = usersWithOutDeleted[randomTenantIndex];
+      await building.update(
+        { $push: { admin: randomTenant } },
+        { returnOriginal: false }
+      );
+    }
+    return res.status(200).json({
+      message: 'ADMIN_AS_DELETED',
+      building,
+    });
+  });
+};
+
 module.exports = {
   createBuilding,
   getBuilding,
   getAllBuildings,
   getMyBuildings,
+  giveAdmin,
+  removeAdmin,
 };
