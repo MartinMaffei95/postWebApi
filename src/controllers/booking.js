@@ -188,7 +188,6 @@ const getAllBookings = (req, res) => {
 //##### GET MY BOOKINGS - for userId #####
 //########################################
 const getMyBookings = (req, res) => {
-  console.log('GET MY BOOKINGS');
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
     if (err) {
       return res.status(501).json({
@@ -205,7 +204,6 @@ const getMyBookings = (req, res) => {
     })
       .populate('space bookedBy building')
       .exec((err, booking) => {
-        console.log(booking);
         return res.status(200).json({
           message: 'BOOKINGS_FOUND',
           booking,

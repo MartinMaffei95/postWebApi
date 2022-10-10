@@ -44,6 +44,13 @@ const buildingSchema = new Schema({
       ref: 'User',
     },
   ],
+  requestsSended: [
+    {
+      type: Schema.Types.ObjectId,
+      default: [],
+      ref: 'User',
+    },
+  ],
   createdAt: {
     type: Number,
     default: Date.now,

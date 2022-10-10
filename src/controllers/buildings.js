@@ -9,7 +9,6 @@ const User = require('../models/user');
 //################################
 // ## CREATE BUILDINGS  ##########
 //################################
-
 const createBuilding = (req, res) => {
   const { name, buildingIdentifier } = req.body;
 
@@ -77,14 +76,7 @@ const createBuilding = (req, res) => {
         }
 
         // ## CREATING A SPACE IN SAME ACTION
-        // const space = new Space({
-        //   _id: spaceId,
-        //   name: space_name,
-        //   fromBuilding: builidngId,
-        //   timeSlotsFormat,
-        //   needConfirmation,
-        //   bookings: [],
-        // });
+
         const spaceId = Types.ObjectId();
         const space = {
           _id: spaceId,
@@ -211,7 +203,16 @@ const getBuilding = (req, res) => {
     }
 
     let building = await Building.findById(id)
-      .populate('admin spaces tenants')
+      // .populate('admin spaces tenants')
+      // .populate({
+      //   path: 'spaces',
+      //   populate: { path: 'bookings' },
+      // })
+      .populate([
+        { path: 'admin' },
+        { path: 'spaces', populate: { path: 'bookings' } },
+        { path: 'tenants' },
+      ])
       .exec((err, result) => {
         if (err) {
           return res.status(501).json({
@@ -219,7 +220,7 @@ const getBuilding = (req, res) => {
             building,
           });
         }
-
+        console.log(result);
         return res.status(200).json({
           message: 'BUILDING_FOUND',
           building: result,

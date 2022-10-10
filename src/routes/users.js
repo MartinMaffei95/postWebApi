@@ -3,6 +3,7 @@ const {
   addTenantRequest,
   aceptTenantRequest,
   getUser,
+  cancelTenantRequest,
 } = require('../controllers/users');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/verifyToken');
@@ -16,6 +17,9 @@ router.post('/:id', verifyToken, verifyID, addTenantRequest);
 
 // SEND NEW TENATN REQUEST
 router.post('/addTenant/:id', verifyToken, verifyID, aceptTenantRequest);
+
+// CANCEL A TENATN REQUEST
+router.delete('/:id', verifyToken, verifyID, cancelTenantRequest);
 
 // CREATE A USER
 router.post('/', (req, res) => {

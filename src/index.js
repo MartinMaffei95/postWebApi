@@ -3,8 +3,10 @@ const logger = require('morgan');
 require('dotenv').config();
 const app = express();
 app.use(logger('dev'));
-const { Space } = require('./models/space');
+const cron = require('node-cron');
 const cors = require('cors');
+
+const moment = require('moment');
 
 // ROUTES
 const userRoutes = require('./routes/users');
@@ -13,6 +15,8 @@ const buildingRoutes = require('./routes/buildings');
 const spaceRoutes = require('./routes/spaces');
 const bookingRoutes = require('./routes/bookings');
 const searchRoutes = require('./routes/search');
+const Space = require('./models/space');
+const { deleteExpiredBookings } = require('./middlewares/deleteExpiredBooking');
 
 //############################
 // ## CONNECTING DB ##########
@@ -46,6 +50,18 @@ app.use('/spaces', spaceRoutes);
 app.use('/bookings', bookingRoutes);
 app.use('/search', searchRoutes);
 
+//#####################################
+// ## CLEAN EXPIRED BOOKINGS ##########
+//#####################################
+
+cron.schedule('* */6 * * *', function () {
+  deleteExpiredBookings();
+  console.log(
+    `Cleaning expired Bookings from DB. Next cleaning in 6h ${moment()}`
+  );
+});
+
+console.log(moment(1665198624069).add(30, 's'));
 app.listen(app.get('PORT'), () => {
   console.log(`server listening on port ${app.get('PORT')}`);
 });
