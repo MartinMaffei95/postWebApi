@@ -45,39 +45,70 @@ const register = (req, res) => {
 
 // Login
 const login = (req, res) => {
-  User.findOne({ username: req.body.username }, (err, result) => {
-    if (err) {
-      res.send('Error en el login ' + err);
-    } else {
-      if (result) {
-        if (
-          req.body.password &&
-          bcrypt.compareSync(req.body.password, result.password)
-        ) {
-          //User logged!
-          //now
-          //Creating Token with jsw
-          jwt.sign({ user: result }, SECRET_KEY, (err, token) => {
-            res.status(200).send({
-              message: 'LOGIN_SUCCESS',
-              user: result,
-              token: token,
-            });
-          });
-        } else {
-          res.status(400).send({
-            message: 'IVALID_PASSWORD',
-            error: err,
-          });
-        }
-      } else {
-        res.status(400).send({
-          message: 'IVALID_USER',
-          error: err,
+  let user = User.aggregate([
+    { $match: { username: req.body.username } },
+    {
+      $set: { password: '$password' },
+    },
+  ]).exec((err, userTest) => {
+    // console.log(userTest[0].password);
+
+    if (err) return res.status(500).jsonx(err);
+    if (
+      userTest[0] &&
+      bcrypt.compareSync(req.body.password, userTest[0].password)
+    ) {
+      //User logged!
+      //now
+      //Creating Token with jsw
+      jwt.sign({ user: userTest[0] }, SECRET_KEY, (err, token) => {
+        res.status(200).send({
+          message: 'LOGIN_SUCCESS',
+          user: userTest[0],
+          token: token,
         });
-      }
+      });
+    } else {
+      res.status(400).send({
+        message: 'IVALID_PASSWORD',
+        error: err,
+      });
     }
   });
+
+  // User.findOne({ username: req.body.username }, (err, result) => {
+  //   if (err) {
+  //     res.send('Error en el login ' + err);
+  //   } else {
+  //     if (result) {
+  //       if (
+  //         req.body.password &&
+  //         bcrypt.compareSync(req.body.password, result.password)
+  //       ) {
+  //         //User logged!
+  //         //now
+  //         //Creating Token with jsw
+  //         jwt.sign({ user: result }, SECRET_KEY, (err, token) => {
+  //           res.status(200).send({
+  //             message: 'LOGIN_SUCCESS',
+  //             user: result,
+  //             token: token,
+  //           });
+  //         });
+  //       } else {
+  //         res.status(400).send({
+  //           message: 'IVALID_PASSWORD',
+  //           error: err,
+  //         });
+  //       }
+  //     } else {
+  //       res.status(400).send({
+  //         message: 'IVALID_USER',
+  //         error: err,
+  //       });
+  //     }
+  //   }
+  // });
 };
 
 module.exports = {

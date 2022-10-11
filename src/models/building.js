@@ -44,6 +44,14 @@ const buildingSchema = new Schema({
       ref: 'User',
     },
   ],
+  tenantsToAlert: [
+    {
+      type: Schema.Types.ObjectId,
+      default: [],
+      ref: 'User',
+    },
+  ],
+
   requestsSended: [
     {
       type: Schema.Types.ObjectId,

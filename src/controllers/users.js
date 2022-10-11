@@ -5,6 +5,12 @@ const Building = require('../models/building');
 const User = require('../models/user');
 const Booking = require('../models/booking');
 const { isValidObjectId } = require('mongoose');
+const { isValidEmail } = require('../utils/isvalidEmail');
+const bcrypt = require('bcrypt');
+
+//######################################
+// ##  USER REQUESTS ################### -- Create & register is on controllers/auth.js file
+//######################################
 
 // Get a user
 const getUser = (req, res) => {
@@ -19,6 +25,7 @@ const getUser = (req, res) => {
     }
 
     let user = await User.findById(id).populate('tenantRequests');
+
     if (!user) {
       return res.status(501).json({
         message: 'SPACE_NOT_FOUND',
@@ -28,10 +35,103 @@ const getUser = (req, res) => {
 
     if (user) {
       return res.status(200).json({
-        message: 'SPACE_FOUND',
+        message: 'USER_FOUND',
         user,
       });
     }
+  });
+};
+
+//Edit a user
+const editUser = (req, res) => {
+  const { id } = req.params;
+  const { username, name, last_name, email, password } = req.body;
+
+  let updateObject = {};
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    bcrypt.hash(req.body.password, 10, async (err, hash) => {
+      if (err) {
+        // console.log('BCRYPT ERROR:', 'PASS send on BODY', req.body.password, err);
+        return res.status(400).send({
+          message: 'BAD_REQUEST',
+          error: err,
+        });
+      }
+      // Create a edited user object
+      if (username) {
+        let userFinded = await User.find({ username: username });
+        if (userFinded) {
+          return res.status(401).json({
+            message: 'USERNAME_IS_ALREDY_TAKEN',
+            username,
+          });
+        }
+        if (username.length >= 12) {
+          return res.status(401).json({
+            message: 'IS_TO_LONG',
+            username,
+          });
+        }
+        updateObject = { ...updateObject, username: username };
+      }
+      if (name) {
+        if (name.length >= 12) {
+          return res.status(401).json({
+            message: 'IS_TO_LONG',
+            name,
+          });
+        }
+        updateObject = { ...updateObject, name: name };
+      }
+      if (last_name) {
+        if (last_name.length >= 12) {
+          return res.status(401).json({
+            message: 'IS_TO_LONG',
+            last_name,
+          });
+        }
+        updateObject = { ...updateObject, last_name: last_name };
+      }
+      if (email) {
+        if (!isValidEmail(email)) {
+          return res.status(401).json({
+            message: 'INVALID_EMAIL',
+            email,
+          });
+        }
+        updateObject = { ...updateObject, email: email };
+      }
+      if (password) {
+        if (password.length >= 12) {
+          return res.status(401).json({
+            message: 'IS_TO_LONG',
+            password,
+          });
+        }
+        updateObject = { ...updateObject, password: hash };
+      }
+      // Updating
+      let updateProfile = await User.findByIdAndUpdate(id, updateObject, {
+        returnOriginal: false,
+      });
+      if (updateProfile !== null) {
+        res.status(201).json({
+          message: 'PROFILE_MODIFIED',
+          user: updateProfile,
+        });
+      } else {
+        res.status(404).json({
+          message: 'PROFILE_ERROR',
+        });
+      }
+    });
   });
 };
 
@@ -274,7 +374,10 @@ const removeTenant = (req, res) => {
     }
     let building = await Building.findById(buildingId);
 
-    if (!building.admin.includes(userData.user._id)) {
+    if (
+      !building.admin.includes(userData.user._id) &&
+      id !== userData.user._id
+    ) {
       return res.status(501).json({
         message: 'USER_NOT_HAVE_PERMISSIONS',
       });
@@ -358,4 +461,5 @@ module.exports = {
   aceptTenantRequest,
   cancelTenantRequest,
   removeTenant,
+  editUser,
 };
