@@ -58,6 +58,7 @@ const userSchema = new Schema(
     tenantRequests: [
       { type: Schema.Types.ObjectId, default: [], ref: 'Building' }, //recibe building Id for acept later
     ],
+    notifications: { type: Array, default: [] },
     createdAt: {
       type: Number,
       default: Date.now,

@@ -136,16 +136,30 @@ const createABooking = (req, res) => {
               error: err?.errors,
             });
           } else {
-            await Space.findByIdAndUpdate(
-              space._id,
-              { $push: { bookings: newId } },
-              { returnOriginal: false }
-            );
-            return res.status(200).json({
-              message: 'BOOKING_CREATED',
-              booking: reservation,
-              space,
-            });
+            let thisSpace = await Space.findById(space._id);
+            if (thisSpace.needConfirmation) {
+              await Space.findByIdAndUpdate(
+                space._id,
+                { $push: { standByBookings: newId } },
+                { returnOriginal: false }
+              );
+              return res.status(200).json({
+                message: 'BOOKING_CREATED_&_WAIT_CONFIRMATION',
+                booking: reservation,
+                space,
+              });
+            } else {
+              await Space.findByIdAndUpdate(
+                space._id,
+                { $push: { bookings: newId } },
+                { returnOriginal: false }
+              );
+              return res.status(200).json({
+                message: 'BOOKING_CREATED',
+                booking: reservation,
+                space,
+              });
+            }
           }
         });
       });

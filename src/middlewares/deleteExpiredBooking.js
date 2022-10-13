@@ -7,7 +7,7 @@ const deleteExpiredBookings = async () => {
   let arrOfBookings = [];
 
   for (let i = 0; i < bookings.length; i++) {
-    if (moment(bookings[i].date).isBefore(moment())) {
+    if (moment(bookings[i].date).isBefore(moment(), 'day')) {
       let spaces = await Space.findByIdAndUpdate(
         bookings[i].space,
         {

@@ -205,14 +205,17 @@ const getBuilding = (req, res) => {
     }
 
     let building = await Building.findById(id)
-      // .populate('admin spaces tenants')
-      // .populate({
-      //   path: 'spaces',
-      //   populate: { path: 'bookings' },
-      // })
+
       .populate([
         { path: 'admin' },
-        { path: 'spaces', populate: { path: 'bookings' } },
+        {
+          path: 'spaces',
+          populate: { path: 'bookings', populate: 'building bookedBy space' },
+          populate: {
+            path: 'standByBookings',
+            populate: 'building bookedBy space',
+          },
+        },
         { path: 'tenants' },
       ])
       .exec((err, result) => {

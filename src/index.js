@@ -57,7 +57,7 @@ app.use('/search', searchRoutes);
 // ## CLEAN EXPIRED BOOKINGS ##########
 //#####################################
 
-cron.schedule('* */6 * * *', function () {
+cron.schedule('0 0 */6 * * *', function () {
   deleteExpiredBookings();
   console.log(
     `Cleaning expired Bookings from DB. Next cleaning in 6h ${moment()}`

@@ -45,7 +45,8 @@ const getUser = (req, res) => {
 //Edit a user
 const editUser = (req, res) => {
   const { id } = req.params;
-  const { username, name, last_name, email, password } = req.body;
+  const { username, name, last_name, email, password, profileConfig } =
+    req.body;
 
   let updateObject = {};
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
@@ -56,82 +57,91 @@ const editUser = (req, res) => {
       });
     }
 
-    bcrypt.hash(req.body.password, 10, async (err, hash) => {
-      if (err) {
-        // console.log('BCRYPT ERROR:', 'PASS send on BODY', req.body.password, err);
-        return res.status(400).send({
-          message: 'BAD_REQUEST',
-          error: err,
+    if (password) {
+      if (password.length >= 12) {
+        return res.status(401).json({
+          message: 'IS_TO_LONG',
+          password,
         });
       }
-      // Create a edited user object
-      if (username) {
-        let userFinded = await User.find({ username: username });
-        if (userFinded) {
-          return res.status(401).json({
-            message: 'USERNAME_IS_ALREDY_TAKEN',
-            username,
-          });
-        }
-        if (username.length >= 12) {
-          return res.status(401).json({
-            message: 'IS_TO_LONG',
-            username,
-          });
-        }
-        updateObject = { ...updateObject, username: username };
-      }
-      if (name) {
-        if (name.length >= 12) {
-          return res.status(401).json({
-            message: 'IS_TO_LONG',
-            name,
-          });
-        }
-        updateObject = { ...updateObject, name: name };
-      }
-      if (last_name) {
-        if (last_name.length >= 12) {
-          return res.status(401).json({
-            message: 'IS_TO_LONG',
-            last_name,
-          });
-        }
-        updateObject = { ...updateObject, last_name: last_name };
-      }
-      if (email) {
-        if (!isValidEmail(email)) {
-          return res.status(401).json({
-            message: 'INVALID_EMAIL',
-            email,
-          });
-        }
-        updateObject = { ...updateObject, email: email };
-      }
-      if (password) {
-        if (password.length >= 12) {
-          return res.status(401).json({
-            message: 'IS_TO_LONG',
-            password,
+      bcrypt.hash(req.body.password, 10, async (err, hash) => {
+        if (err) {
+          // console.log('BCRYPT ERROR:', 'PASS send on BODY', req.body.password, err);
+          return res.status(400).send({
+            message: 'PASS_ERROR',
+            error: err,
           });
         }
         updateObject = { ...updateObject, password: hash };
-      }
-      // Updating
-      let updateProfile = await User.findByIdAndUpdate(id, updateObject, {
-        returnOriginal: false,
       });
-      if (updateProfile !== null) {
-        res.status(201).json({
+    }
+
+    // Create a edited user object
+    if (username && username !== userData.user.username) {
+      let userFinded = await User.findOne({ username: username });
+      console.log(userFinded);
+      if (userFinded) {
+        return res.status(500).json({
+          message: 'USERNAME_IS_ALREDY_TAKEN',
+          username,
+        });
+      }
+      if (username.length >= 12) {
+        return res.status(500).json({
+          message: 'IS_TO_LONG',
+          username,
+        });
+      }
+      updateObject = { ...updateObject, username: username };
+    }
+    if (name && name !== userData.user.name) {
+      if (name.length >= 12) {
+        return res.status(500).json({
+          message: 'IS_TO_LONG',
+          name,
+        });
+      }
+      updateObject = { ...updateObject, name: name };
+    }
+    if (last_name && last_name !== userData.user.last_name) {
+      if (last_name.length >= 12) {
+        return res.status(500).json({
+          message: 'IS_TO_LONG',
+          last_name,
+        });
+      }
+      updateObject = { ...updateObject, last_name: last_name };
+    }
+    if (email && email !== userData.user.email) {
+      if (!isValidEmail(email)) {
+        return res.status(500).json({
+          message: 'INVALID_EMAIL',
+          email,
+        });
+      }
+      updateObject = { ...updateObject, email: email };
+    }
+    if (profileConfig) {
+      updateObject = { ...updateObject, profileConfig: profileConfig };
+    }
+
+    // Updating
+    let updateProfile = await User.findByIdAndUpdate(id, updateObject, {
+      returnOriginal: false,
+    });
+    if (updateProfile !== null) {
+      jwt.sign({ user: updateProfile }, SECRET_KEY, (err, token) => {
+        res.status(200).send({
           message: 'PROFILE_MODIFIED',
           user: updateProfile,
+          token: token,
         });
-      } else {
-        res.status(404).json({
-          message: 'PROFILE_ERROR',
-        });
-      }
-    });
+      });
+    } else {
+      res.status(404).json({
+        message: 'PROFILE_ERROR',
+      });
+    }
   });
 };
 

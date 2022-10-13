@@ -13,6 +13,9 @@ const spaceSchema = new Schema({
     ref: 'Building',
   },
   bookings: [{ type: Schema.Types.ObjectId, default: [], ref: 'Booking' }],
+  standByBookings: [
+    { type: Schema.Types.ObjectId, default: [], ref: 'Booking' },
+  ],
   timeSlotsFormat: { type: String, default: false, required: true }, // Mañana, tarde, noche | dia
   timeSlotsTaked: {},
   needConfirmation: { type: Boolean, default: false, required: true },

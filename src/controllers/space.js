@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.SECRET_KEY; // private key for jsonWebToken
 const Space = require('../models/space');
 const Building = require('../models/building');
+const Booking = require('../models/booking');
+const User = require('../models/user');
 const { isValidObjectId, Types } = require('mongoose');
 
 //## to do:
@@ -265,7 +267,159 @@ const createSpace = (req, res) => {
   // });
 };
 
+//########################################################
+//##### RESPONSE BOOKINGS #####- only admin can response##
+//########################################################
+const aceptBooking = (req, res) => {
+  const { id } = req.params; // -- Space id --
+  const { booking_id } = req.body; // -- Booking id --
+
+  if (!booking_id || !isValidObjectId(booking_id)) {
+    return res.status(501).json({
+      message: 'BOOKING_ID_INVALID',
+    });
+  }
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    let space = await Space.findById(id);
+    //verify booking is wait for authorization
+    if (!space.standByBookings.includes(booking_id)) {
+      return res.status(501).json({
+        message: 'BOOKING_NOT_FOUND',
+      });
+    }
+    // Verify the user who acept is a admin
+    let building = await Building.findById(space.fromBuilding);
+    if (!building.admin.includes(userData.user._id)) {
+      return res.status(501).json({
+        message: 'USER_NOT_HAVE_PERMISSIONS',
+      });
+    }
+    let bookingDeny = await Booking.findById(booking_id).populate('bookedBy');
+    // if accept: remove id from "standByBookings" and push on "bookings". Send notification to user who create a booking
+
+    // => Create a notification
+    Space.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          bookings: booking_id,
+        },
+        $pull: {
+          standByBookings: booking_id,
+        },
+      },
+      { returnOriginal: false },
+      async (err, editedSpace) => {
+        if (err) {
+          return res.status(500).json({
+            err,
+          });
+        }
+        // Create and sending notification to user
+        const notification = {
+          message: `Tu reserva de ${building?.name} en ${space?.name} no fue admitida`,
+          from: `admin: ${userData?.user?.username}`,
+          to: `${bookingDeny?.bookedBy?.username}`,
+          viewed: false,
+          date: new Date(),
+        };
+        let user = await User.findByIdAndUpdate(bookingDeny?.bookedBy?._id, {
+          $push: {
+            notifications: notification,
+          },
+        });
+
+        return res.status(201).json({
+          editedSpace,
+        });
+      }
+    );
+  });
+};
+
+const denyBooking = (req, res) => {
+  const { id } = req.params; // -- Space id --
+  const { booking_id } = req.body; // -- Booking id --
+
+  if (!booking_id || !isValidObjectId(booking_id)) {
+    return res.status(501).json({
+      message: 'BOOKING_ID_INVALID',
+    });
+  }
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    let space = await Space.findById(id);
+    //verify booking is wait for authorization
+    if (!space?.standByBookings?.includes(booking_id)) {
+      return res.status(501).json({
+        message: 'BOOKING_NOT_FOUND',
+      });
+    }
+    // Verify the user who acept is a admin
+    let building = await Building.findById(space.fromBuilding);
+    if (!building?.admin?.includes(userData.user._id)) {
+      return res.status(501).json({
+        message: 'USER_NOT_HAVE_PERMISSIONS',
+      });
+    }
+    let bookingDeny = await Booking.findById(booking_id).populate('bookedBy');
+    console.log(bookingDeny);
+    // if accept: remove id from "standByBookings" and push on "bookings". Send notification to user who create a booking
+
+    Space.findByIdAndUpdate(
+      id,
+      {
+        $pull: {
+          standByBookings: booking_id,
+        },
+      },
+      { returnOriginal: false },
+      async (err, editedSpace) => {
+        if (err) {
+          return res.status(500).json({
+            err,
+          });
+        }
+        // Create and sending notification to user
+        const notification = {
+          message: `Tu reserva de ${building?.name} en ${space?.name} no fue admitida`,
+          from: `admin: ${userData?.user?.username}`,
+          to: `${bookingDeny?.bookedBy?.username}`,
+          viewed: false,
+          date: new Date(),
+        };
+        let user = await User.findByIdAndUpdate(bookingDeny?.bookedBy?._id, {
+          $push: {
+            notifications: notification,
+          },
+        });
+
+        return res.status(201).json({
+          editedSpace,
+        });
+      }
+    );
+  });
+};
+
 module.exports = {
   createSpace,
   getSpace,
+  aceptBooking,
+  denyBooking,
 };
