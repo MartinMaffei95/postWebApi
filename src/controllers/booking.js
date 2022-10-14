@@ -149,6 +149,10 @@ const createABooking = (req, res) => {
                 space,
               });
             } else {
+              await Booking.findByIdAndUpdate(
+                { _id: newId },
+                { reservationAccepted: true }
+              );
               await Space.findByIdAndUpdate(
                 space._id,
                 { $push: { bookings: newId } },

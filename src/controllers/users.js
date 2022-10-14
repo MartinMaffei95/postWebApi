@@ -7,6 +7,7 @@ const Booking = require('../models/booking');
 const { isValidObjectId } = require('mongoose');
 const { isValidEmail } = require('../utils/isvalidEmail');
 const bcrypt = require('bcrypt');
+const Notification = require('../models/notification');
 
 //######################################
 // ##  USER REQUESTS ################### -- Create & register is on controllers/auth.js file
@@ -426,7 +427,7 @@ const removeTenant = (req, res) => {
       let bookings = await Booking.find({});
       building = await Building.findById(buildingId);
       // For elimination of tenants
-      if (building.tenants.length <= 0) {
+      if (building?.tenants?.length <= 0) {
         await Space.deleteMany({ fromBuilding: buildingId });
         await Booking.deleteMany({ building: buildingId });
         await Building.deleteOne({ _id: buildingId });
@@ -465,6 +466,71 @@ const removeTenant = (req, res) => {
   });
 };
 
+//######################################
+// ##  NOTIFICATION REQUESTS ###########
+//######################################
+
+const getMyNotifications = (req, res) => {
+  const { id } = req.params; // user id
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(501).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    let notifications = await Notification.find({
+      to: id,
+    }).populate('building space from');
+    return res.status(200).json({
+      message: 'NOTIFICATIONS_FIND',
+      notifications,
+    });
+  });
+};
+
+const setViewedNotification = (req, res) => {
+  const { id } = req.params; // user id
+  const { notifications_id } = req.body;
+  console.log(req.body);
+  if (!notifications_id || notifications_id?.length <= 0) {
+    return res.status(500).json({
+      message: 'REQUEST_BODY_IS_EMPTY',
+      notifications_id,
+    });
+  }
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    if (err) {
+      return res.status(500).json({
+        message: 'TOKEN_ERROR',
+        error: err,
+      });
+    }
+
+    for (let i = 0; i < notifications_id.length; i++) {
+      const notification = notifications_id[i];
+      Notification.findByIdAndUpdate(
+        notification._id,
+        { viewed: true },
+        { returnOriginal: false },
+        (err, result) => {
+          if (err) {
+            return res.status(500).json({
+              message: 'ERROR_IN_UPDATE_NOTIFICATIONS',
+              error: err,
+            });
+          }
+        }
+      );
+    }
+    return res.status(200).json({
+      message: 'NOTIFICATIONS_UPDATED',
+    });
+  });
+};
+
 module.exports = {
   getUser,
   addTenantRequest,
@@ -472,4 +538,6 @@ module.exports = {
   cancelTenantRequest,
   removeTenant,
   editUser,
+  getMyNotifications,
+  setViewedNotification,
 };

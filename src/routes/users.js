@@ -6,6 +6,8 @@ const {
   cancelTenantRequest,
   removeTenant,
   editUser,
+  getMyNotifications,
+  setViewedNotification,
 } = require('../controllers/users');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/verifyToken');
@@ -28,6 +30,24 @@ router.post('/addTenant/:id', verifyToken, verifyID, aceptTenantRequest);
 
 // DELETE TENANT FROM BUILDING
 router.delete('/removeTenant/:id', verifyToken, verifyID, removeTenant);
+
+//######################################
+// ##  NOTIFICATION REQUESTS ###########
+//######################################
+
+// Get my notifications
+router.get('/:id/notifications', verifyToken, verifyID, getMyNotifications);
+
+router.put(
+  '/:id/view_notifications',
+  verifyToken,
+  verifyID,
+  setViewedNotification
+);
+
+//######################################
+// ##  USERS REQUESTS ##################
+//######################################
 
 // CREATE A USER
 router.post('/', (req, res) => {

@@ -179,10 +179,11 @@ const getMyBuildings = (req, res) => {
         $in: [myId],
       },
     })
-      .populate({
-        path: 'spaces',
-        populate: { path: 'bookings' },
-      })
+      .populate([
+        { path: 'admin' },
+        { path: 'tenants' },
+        { path: 'spaces', populate: { path: 'bookings' } },
+      ])
       .exec((err, building) => {
         return res.status(200).json({
           message: 'BUILDINGS_FOUND',
