@@ -1,14 +1,17 @@
 const express = require('express');
-const logger = require('morgan');
 require('dotenv').config();
+
 const app = express();
+
+const logger = require('morgan');
 app.use(logger('dev'));
 const cron = require('node-cron');
 const cors = require('cors');
 const moment = require('moment');
 
 // ROUTES
-// const userRoutes = require('./routes/users');
+const router = express.Router();
+const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const buildingRoutes = require('./routes/buildings');
 const spaceRoutes = require('./routes/spaces');
@@ -41,8 +44,8 @@ app.use(express.json());
 // ## CONFIG ROUTES ##########
 //############################
 
-// app.use('/auth', authRoutes);
-// app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 app.use('/buildings', buildingRoutes);
 app.use('/spaces', spaceRoutes);
 app.use('/bookings', bookingRoutes);
