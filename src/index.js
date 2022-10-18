@@ -8,7 +8,7 @@ const cors = require('cors');
 const moment = require('moment');
 
 // ROUTES
-const userRoutes = require('./routes/users');
+// const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
 const buildingRoutes = require('./routes/buildings');
 const spaceRoutes = require('./routes/spaces');
