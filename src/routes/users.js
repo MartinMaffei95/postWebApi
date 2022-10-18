@@ -1,4 +1,6 @@
 const express = require('express');
+const router = express.Router();
+
 const {
   addTenantRequest,
   aceptTenantRequest,
@@ -9,7 +11,6 @@ const {
   getMyNotifications,
   setViewedNotification,
 } = require('../controllers/users');
-const router = express.Router();
 const { verifyToken } = require('../middlewares/verifyToken');
 const { verifyID } = require('../middlewares/verifyID');
 
@@ -48,15 +49,5 @@ router.put(
 //######################################
 // ##  USERS REQUESTS ##################
 //######################################
-
-// CREATE A USER
-router.post('/', (req, res) => {
-  console.log('GET :' + req.params.id);
-});
-
-// DELETE A USER
-router.delete('/:id', (req, res) => {
-  console.log('GET :' + req.params.id);
-});
 
 module.exports = router;

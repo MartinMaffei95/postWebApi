@@ -41,8 +41,8 @@ app.use(express.json());
 // ## CONFIG ROUTES ##########
 //############################
 
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
+// app.use('/auth', authRoutes);
+// app.use('/users', userRoutes);
 app.use('/buildings', buildingRoutes);
 app.use('/spaces', spaceRoutes);
 app.use('/bookings', bookingRoutes);
