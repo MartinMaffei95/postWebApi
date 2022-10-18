@@ -11,7 +11,8 @@ const {
 } = require('../controllers/users');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/verifyToken');
-const { verifyID } = require('../middlewares/verifyID.js');
+const { verifyID } = require('../middlewares/verifyID');
+
 // GET A USER
 router.get('/:id', verifyToken, verifyID, getUser);
 
