@@ -5,11 +5,8 @@ const app = express();
 app.use(logger('dev'));
 const cron = require('node-cron');
 const cors = require('cors');
-
 const moment = require('moment');
 
-const Building = require('./models/building');
-const User = require('./models/user');
 // ROUTES
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
@@ -17,9 +14,7 @@ const buildingRoutes = require('./routes/buildings');
 const spaceRoutes = require('./routes/spaces');
 const bookingRoutes = require('./routes/bookings');
 const searchRoutes = require('./routes/search');
-const Space = require('./models/space');
 const { deleteExpiredBookings } = require('./middlewares/deleteExpiredBooking');
-const { Types } = require('mongoose');
 
 //############################
 // ## CONNECTING DB ##########
