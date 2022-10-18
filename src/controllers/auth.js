@@ -44,8 +44,22 @@ const register = (req, res) => {
 };
 
 // Login
-const login = (req, res) => {
-  let user = User.aggregate([
+const login = async (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(500).send({
+      message: 'USERNAME_FIELD_EMPTY',
+    });
+  }
+
+  let user = await User.findOne({ username: username });
+  if (!user) {
+    return res.status(404).send({
+      message: 'INVALID_USER',
+    });
+  }
+
+  user = User.aggregate([
     { $match: { username: req.body.username } },
     {
       $set: { password: '$password' },

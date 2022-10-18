@@ -68,6 +68,17 @@ const createBuilding = (req, res) => {
           });
         }
 
+        if (spaces[i].timeSlotsFormat === 'BY_TIME_SLOT') {
+          defaultValuesTimeSlot = ['MORNING', 'AFTERNOON', 'NIGHT'];
+        } else if (spaces[i].timeSlotsFormat === 'PER_DAY') {
+          defaultValuesTimeSlot = ['ALL_DAY'];
+        } else {
+          return res.status(500).json({
+            message: 'INVALID_TIME_CONFIG',
+            error: `Only accept "BY_TIME_SLOT" or "ALL_DAY. Your value ${spaces[i].timeSlotsFormat} is not valid`,
+          });
+        }
+
         if (
           (spaces[i].needConfirmation !== Boolean ||
             spaces[i].needConfirmation) === null ||
@@ -88,6 +99,7 @@ const createBuilding = (req, res) => {
           timeSlotsFormat: spaces[i].timeSlotsFormat,
           needConfirmation: spaces[i].needConfirmation,
           bookings: [],
+          defaultValuesTimeSlot: defaultValuesTimeSlot,
         };
         arrSpaceId.push(spaceId);
         arrOfSpaces.push(space);

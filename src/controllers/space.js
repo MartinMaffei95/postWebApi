@@ -118,7 +118,7 @@ const createSpace = (req, res) => {
           defaultValuesTimeSlot = ['ALL_DAY'];
         } else {
           return res.status(500).json({
-            message: 'INVALID_TIME_CONGIF',
+            message: 'INVALID_TIME_CONFIG',
             error: `Only accept "BY_TIME_SLOT" or "ALL_DAY. Your value ${spaces[i].timeSlotsFormat} is not valid`,
           });
         }
@@ -182,103 +182,6 @@ const createSpace = (req, res) => {
       });
     }
   });
-
-  // if (!fromBuilding) {
-  //   return res.status(500).json({
-  //     message: 'BUILDING_ID_IS_REQUIRED',
-  //   });
-  // }
-
-  // if (!isValidObjectId(fromBuilding)) {
-  //   return res.status(500).json({
-  //     message: 'BUILDING_ID_IS_INVALID',
-  //   });
-  // }
-
-  // if (!timeSlotsFormat) {
-  //   return res.status(500).json({
-  //     message: 'TIME_CONFIG_IS_REQUIRED',
-  //   });
-  // }
-
-  // if (
-  //   (needConfirmation !== Boolean || needConfirmation) === null ||
-  //   needConfirmation === undefined
-  // ) {
-  //   return res.status(500).json({
-  //     message: 'PERMISSION_CONFIG_IS_REQUIRED',
-  //   });
-  // }
-
-  // jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
-  //   if (err) {
-  //     return res.status(501).json({
-  //       message: 'TOKEN_ERROR',
-  //       error: err,
-  //     });
-  //   }
-
-  //   let building = Building.findById(fromBuilding, function (err, building) {
-  //     Space.populate(building, { path: 'spaces' }, function (err, building) {
-  //       // building have in "spaces":all data from specific space
-  //       if (err) {
-  //         return res.status(501).json({
-  //           message: 'DATA_ERROR',
-  //           err,
-  //         });
-  //       }
-
-  //       if (!building) {
-  //         return res.status(501).json({
-  //           message: 'BUILDING_NOT_FOUND',
-  //           building,
-  //         });
-  //       }
-  //       //verify name is taked
-  //       if (building.spaces.find((s) => s.name === name)) {
-  //         return res.status(501).json({
-  //           message: 'NAME_ALREDY_TAKEN',
-  //         });
-  //       }
-
-  //       const newId = Types.ObjectId();
-  //       const space = new Space({
-  //         _id: newId,
-  //         name: name,
-  //         fromBuilding,
-  //         timeSlotsFormat,
-  //         needConfirmation,
-  //         bookings: [],
-  //       });
-
-  //       space.save(async (err, result) => {
-  //         if (err) {
-  //           return res.status(501).json({
-  //             message: 'ERROR_SAVING_SPACE',
-  //             error: err?.errors,
-  //           });
-  //         } else {
-  //           await Building.findByIdAndUpdate(
-  //             fromBuilding,
-  //             {
-  //               $push: {
-  //                 spaces: newId,
-  //               },
-  //             },
-  //             {
-  //               returnOriginal: false,
-  //             }
-  //           );
-
-  //           return res.status(200).json({
-  //             message: 'CREADO',
-  //             data: space,
-  //           });
-  //         }
-  //       });
-  //     });
-  //   });
-  // });
 };
 
 //########################################################
@@ -353,6 +256,7 @@ const aceptBooking = (req, res) => {
             err,
           });
         }
+
         // Create and sending notification to user
         const notification_Id = Types.ObjectId();
         const notification = new Notification({
@@ -362,6 +266,7 @@ const aceptBooking = (req, res) => {
           to: aceptedBooking?.bookedBy?._id,
           building: aceptedBooking?.building,
           space: aceptedBooking?.space,
+          booking: aceptedBooking,
           viewed: false,
         });
         await notification.save();
@@ -369,6 +274,10 @@ const aceptBooking = (req, res) => {
           $push: {
             notifications: notification_Id,
           },
+        });
+        //change state of booking to acepted = true
+        await Booking.findByIdAndUpdate(booking_id, {
+          reservationAccepted: true,
         });
 
         return res.status(201).json({
@@ -438,6 +347,7 @@ const denyBooking = (req, res) => {
           to: bookingDeny?.bookedBy?._id,
           building: bookingDeny?.building,
           space: bookingDeny?.space,
+          booking: bookingDeny,
           viewed: false,
         });
         await notification.save();

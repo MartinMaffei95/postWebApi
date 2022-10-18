@@ -25,7 +25,10 @@ const getUser = (req, res) => {
       });
     }
 
-    let user = await User.findById(id).populate('tenantRequests');
+    let user = await User.findById(id).populate([
+      { path: 'tenantRequests' },
+      { path: 'buildings', populate: 'admin spaces' },
+    ]);
 
     if (!user) {
       return res.status(501).json({
@@ -483,7 +486,7 @@ const getMyNotifications = (req, res) => {
 
     let notifications = await Notification.find({
       to: id,
-    }).populate('building space from');
+    }).populate('building space from booking');
     return res.status(200).json({
       message: 'NOTIFICATIONS_FIND',
       notifications,

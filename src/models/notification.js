@@ -11,6 +11,7 @@ const notificationSchema = new Schema({
   to: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
   building: { type: Schema.Types.ObjectId, required: true, ref: 'Building' },
   space: { type: Schema.Types.ObjectId, required: true, ref: 'Space' },
+  booking: { type: Schema.Types.ObjectId, required: true, ref: 'Booking' },
   viewed: { type: Boolean, default: false, required: true },
   date: {
     type: Number,
