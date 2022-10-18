@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/verifyToken');
-// const { verifyID } = require('../middlewares/verifyID');
 const { verifyID } = require('../middlewares/verifyID.js');
 
 const {

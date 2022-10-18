@@ -34,7 +34,7 @@ app.use(
   })
 );
 
-app.set('PORT', process.env.PORT || 4000);
+app.set('port', process.env.PORT || 4000);
 app.use(express.json());
 
 //############################
@@ -60,6 +60,6 @@ cron.schedule('0 0 */6 * * *', function () {
 });
 
 // console.log(moment(1665198624069).add(30, 's'));
-app.listen(app.get('PORT'), () => {
-  console.log(`server listening on port ${app.get('PORT')}`);
+app.listen(app.get('port'), () => {
+  console.log(`server listening on port ${app.get('port')}`);
 });
