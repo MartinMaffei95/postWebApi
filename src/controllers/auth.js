@@ -29,7 +29,7 @@ const register = (req, res) => {
     user.save((err, result) => {
       if (err) {
         res.status(500).send({
-          message: 'ERROR_LOGIN',
+          message: 'SIGIN_ERROR',
           errors: err.errors,
         });
       } else {

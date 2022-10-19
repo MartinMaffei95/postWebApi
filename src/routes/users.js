@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-
+const { verifyToken } = require('../middlewares/verifyToken');
+const { verifyID } = require('../middlewares/verifyID');
 const {
   addTenantRequest,
   aceptTenantRequest,
@@ -11,8 +12,6 @@ const {
   getMyNotifications,
   setViewedNotification,
 } = require('../controllers/users');
-const { verifyToken } = require('../middlewares/verifyToken');
-const { verifyID } = require('../middlewares/verifyID');
 
 // GET A USER
 router.get('/:id', verifyToken, verifyID, getUser);
