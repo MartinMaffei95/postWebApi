@@ -6,6 +6,7 @@ const Booking = require('../models/booking');
 const User = require('../models/user');
 const Notification = require('../models/notification');
 const { isValidObjectId, Types } = require('mongoose');
+const emailer = require('../config/emailer');
 
 //## to do:
 // the spaces represents zooms in building (i was to be: zoom, pool, every place u want a share)
@@ -172,7 +173,6 @@ const createSpace = (req, res) => {
               message: 'ERROR_SAVING_BUILDING',
             });
           } else {
-            console.log(building);
             return res.status(200).json({
               message: 'CREADO',
               data: building,
@@ -237,7 +237,6 @@ const aceptBooking = (req, res) => {
         message: 'HAVE_ANOTHER_RESERVATION',
       });
     }
-    // console.log(space);
     // => Create a notification
     Space.findByIdAndUpdate(
       id,
@@ -279,7 +278,15 @@ const aceptBooking = (req, res) => {
         await Booking.findByIdAndUpdate(booking_id, {
           reservationAccepted: true,
         });
-
+        let booking = await Booking.findById(booking_id).populate(
+          'building space bookedBy'
+        );
+        if (
+          booking?.bookedBy?.profileConfig?.email?.alerts === true &&
+          building?.tenantsToAlert?.includes(userData?.user._id)
+        ) {
+          if (booking?.bookedBy?.email) emailer.sendMail(booking, true);
+        }
         return res.status(201).json({
           editedSpace,
         });
@@ -321,7 +328,6 @@ const denyBooking = (req, res) => {
       });
     }
     let bookingDeny = await Booking.findById(booking_id).populate('bookedBy');
-    console.log(bookingDeny);
     // if accept: remove id from "standByBookings" and push on "bookings". Send notification to user who create a booking
 
     Space.findByIdAndUpdate(
@@ -356,7 +362,15 @@ const denyBooking = (req, res) => {
             notifications: notification_Id,
           },
         });
-
+        let booking = await Booking.findById(booking_id).populate(
+          'building space bookedBy'
+        );
+        if (
+          booking?.bookedBy?.profileConfig?.email?.alerts === true &&
+          building?.tenantsToAlert?.includes(userData?.user._id)
+        ) {
+          if (booking?.bookedBy?.email) emailer.sendMail(booking, false);
+        }
         return res.status(201).json({
           editedSpace,
         });
