@@ -359,6 +359,73 @@ const removeAdmin = (req, res) => {
   });
 };
 
+//######################################
+// ##  ALERTS REQUESTS #################
+//######################################
+const addOnAlertGroup = (req, res) => {
+  const { id } = req.params; //id from building
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    const userId = userData.user._id;
+    let building = await Building.findById(id);
+
+    // verify the user is a tenant
+    if (!building?.tenants?.includes(userId)) {
+      return res.status(500).json({
+        message: 'USER_IS_NOT_A_TENANT',
+        building,
+      });
+    }
+    //verify the user is n in group yet
+    if (building?.tenantsToAlert?.includes(userId)) {
+      return res.status(500).json({
+        message: 'USER_IS_ALREDY_IN_ALERT_GROUP',
+      });
+    }
+
+    await building.update(
+      { $push: { tenantsToAlert: userId } },
+      { returnOriginal: false }
+    );
+    return res.status(201).json({
+      message: 'USER_IS_ON_ALERT_GROUP_NOW',
+      building,
+    });
+  });
+};
+
+const deleteOnAlertGroup = (req, res) => {
+  const { id } = req.params; //id from building
+
+  jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
+    const userId = userData.user._id;
+    let building = await Building.findById(id);
+
+    // verify the user is a tenant
+    if (!building?.tenants?.includes(userId)) {
+      return res.status(500).json({
+        message: 'USER_IS_NOT_A_TENANT',
+        building,
+      });
+    }
+    //verify the user is n in group yet
+    if (!building?.tenantsToAlert?.includes(userId)) {
+      return res.status(500).json({
+        message: 'USER_IS_NOT_IN_ALERT_GROUP',
+      });
+    }
+
+    await building.update(
+      { $pull: { tenantsToAlert: userId } },
+      { returnOriginal: false }
+    );
+    return res.status(201).json({
+      message: 'USER_IS_OFF_ALERT_GROUP_NOW',
+      building,
+    });
+  });
+};
+
 module.exports = {
   createBuilding,
   getBuilding,
@@ -366,4 +433,6 @@ module.exports = {
   getMyBuildings,
   giveAdmin,
   removeAdmin,
+  addOnAlertGroup,
+  deleteOnAlertGroup,
 };

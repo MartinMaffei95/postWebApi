@@ -10,6 +10,8 @@ const {
   getMyBuildings,
   giveAdmin,
   removeAdmin,
+  addOnAlertGroup,
+  deleteOnAlertGroup,
 } = require('../controllers/buildings');
 
 //create a Building
@@ -28,5 +30,11 @@ router.get('/', verifyToken, getMyBuildings);
 
 //getting a specific building
 router.get('/:id', verifyToken, verifyID, getBuilding);
+
+// ALERTS ON
+router.post('/:id/alert', verifyToken, verifyID, addOnAlertGroup);
+
+// ALERTS OFF
+router.delete('/:id/alert', verifyToken, verifyID, deleteOnAlertGroup);
 
 module.exports = router;
