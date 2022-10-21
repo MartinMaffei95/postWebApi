@@ -176,6 +176,12 @@ const createABooking = (req, res) => {
 //########################################
 const getAllBookings = (req, res) => {
   const { spaceId } = req.query;
+  if (!spaceId) {
+    return res.status(500).json({
+      message: 'MISSING_USER_ID',
+      reservation,
+    });
+  }
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
     if (err) {
       return res.status(501).json({

@@ -4,6 +4,9 @@ const Building = require('./building');
 const Space = require('./space');
 const User = require('./user');
 
+//Paginate
+const mongoosePaginate = require('mongoose-paginate-v2');
+
 const notificationSchema = new Schema({
   message: { type: String, default: '' },
   response: { type: String, default: '' },
@@ -19,5 +22,6 @@ const notificationSchema = new Schema({
   },
 });
 
+notificationSchema.plugin(mongoosePaginate);
 const Notification = mongoose.model('Notification', notificationSchema);
 module.exports = Notification;

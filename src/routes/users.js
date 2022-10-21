@@ -36,7 +36,7 @@ router.delete('/removeTenant/:id', verifyToken, verifyID, removeTenant);
 //######################################
 
 // Get my notifications
-router.get('/:id/notifications', verifyToken, verifyID, getMyNotifications);
+router.get('/:id/notifications/?', verifyToken, verifyID, getMyNotifications);
 
 router.put(
   '/:id/view_notifications',

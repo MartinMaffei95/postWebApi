@@ -475,6 +475,15 @@ const removeTenant = (req, res) => {
 
 const getMyNotifications = (req, res) => {
   const { id } = req.params; // user id
+  const { page } = req.query;
+
+  const { spaceId } = req.query;
+  if (!page) {
+    return res.status(500).json({
+      message: 'NEED_PAGE_NUMBER',
+      reservation,
+    });
+  }
 
   jwt.verify(req.token, SECRET_KEY, async (err, userData) => {
     if (err) {
@@ -483,14 +492,25 @@ const getMyNotifications = (req, res) => {
         error: err,
       });
     }
+    const paginationOpt = {
+      page: page,
+      limit: 10,
+      populate: 'building space from booking',
+    };
+    let notifications = await Notification.paginate(
+      {},
+      paginationOpt,
+      (err, result) => {
+        return res.status(200).json({
+          message: 'NOTIFICATIONS_FIND',
+          notifications: result,
+        });
+      }
+    );
 
-    let notifications = await Notification.find({
-      to: id,
-    }).populate('building space from booking');
-    return res.status(200).json({
-      message: 'NOTIFICATIONS_FIND',
-      notifications,
-    });
+    //   let notifications = await Notification.find({
+    //     to: id,
+    //   }).populate('building space from booking');
   });
 };
 
