@@ -20,6 +20,14 @@ const notificationSchema = new Schema({
     type: Number,
     default: Date.now,
   },
+  createdAt: {
+    type: Number,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Number,
+    default: Date.now,
+  },
 });
 
 notificationSchema.plugin(mongoosePaginate);

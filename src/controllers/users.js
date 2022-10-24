@@ -492,13 +492,12 @@ const getMyNotifications = (req, res) => {
         error: err,
       });
     }
-    // let notificationsTest = await Notification.find({
-    //   to: id,
-    // })
+
     const paginationOpt = {
       page: page,
       limit: 10,
       populate: 'building space from booking',
+      sort: { createdAt: -1 },
     };
     let notifications = await Notification.paginate(
       { to: id },

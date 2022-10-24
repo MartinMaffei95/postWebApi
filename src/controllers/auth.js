@@ -6,7 +6,7 @@ const SECRET_KEY = process.env.SECRET_KEY; // private key for jsonWebToken
 // Register
 const register = (req, res) => {
   //encripting the password with BCRYPT and create USER
-  if (req?.body?.password?.length <= 4 || req?.body?.password?.length > 12) {
+  if (req?.body?.password?.length < 4 || req?.body?.password?.length > 12) {
     return res.status(500).send({
       message: 'INVALID_PASSWORD',
       errors:
@@ -29,8 +29,7 @@ const register = (req, res) => {
     user.save((err, result) => {
       if (err) {
         res.status(500).send({
-          message: 'SIGIN_ERROR',
-          errors: err.errors,
+          message: err?.errors?.username?.message || 'SIGNIN_ERROR',
         });
       } else {
         res.status(201).send({
