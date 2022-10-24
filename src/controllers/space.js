@@ -24,7 +24,7 @@ const getSpace = (req, res) => {
       });
     }
 
-    let space = await Space.findById(id);
+    let space = await Space.findById(id).populate('fromBuilding');
     if (!space) {
       return res.status(501).json({
         message: 'SPACE_NOT_FOUND',

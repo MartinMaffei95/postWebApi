@@ -492,15 +492,19 @@ const getMyNotifications = (req, res) => {
         error: err,
       });
     }
+    // let notificationsTest = await Notification.find({
+    //   to: id,
+    // })
     const paginationOpt = {
       page: page,
       limit: 10,
       populate: 'building space from booking',
     };
     let notifications = await Notification.paginate(
-      {},
+      { to: id },
       paginationOpt,
       (err, result) => {
+        console.log(result);
         return res.status(200).json({
           message: 'NOTIFICATIONS_FIND',
           notifications: result,
