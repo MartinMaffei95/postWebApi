@@ -151,7 +151,7 @@ const createABooking = (req, res) => {
             } else {
               await Booking.findByIdAndUpdate(
                 { _id: newId },
-                { reservationAccepted: true }
+                { status: 'ACEPTED' }
               );
               await Space.findByIdAndUpdate(
                 space._id,

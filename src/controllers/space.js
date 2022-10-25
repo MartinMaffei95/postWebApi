@@ -276,7 +276,7 @@ const aceptBooking = (req, res) => {
         });
         //change state of booking to acepted = true
         await Booking.findByIdAndUpdate(booking_id, {
-          reservationAccepted: true,
+          status: 'ACEPTED',
         });
         let booking = await Booking.findById(booking_id).populate(
           'building space bookedBy'
@@ -361,6 +361,10 @@ const denyBooking = (req, res) => {
           $push: {
             notifications: notification_Id,
           },
+        });
+        //change state of booking to deny
+        await Booking.findByIdAndUpdate(booking_id, {
+          status: 'DENY',
         });
         let booking = await Booking.findById(booking_id).populate(
           'building space bookedBy'

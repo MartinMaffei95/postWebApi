@@ -26,7 +26,7 @@ const bookingSchema = new Schema({
   building: { type: Schema.Types.ObjectId, ref: 'Building', required: true },
   space: { type: Schema.Types.ObjectId, ref: 'Space', required: true },
   bookedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  reservationAccepted: { type: Boolean, default: false, required: true },
+  status: { type: String, default: 'ON_WAIT', required: true }, // ON_WAIT | ACEPTED | DENY
   createdAt: {
     type: Number,
     default: Date.now,
